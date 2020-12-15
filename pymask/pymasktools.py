@@ -328,10 +328,10 @@ def get_optics_and_orbit_at_start_ring(mad, seq_name, with_bb_forces=False,
     initial_bb_state = None
 
     try:
-        initial_bb_state = mad.globals.on_bb_switch
-        mad.globals.on_bb_switch = {True: 1, False: 0}[with_bb_forces]
+        initial_bb_state = mad.globals.on_bb_charge
+        mad.globals.on_bb_charge = {True: 1, False: 0}[with_bb_forces]
     except AttributeError:
-        print('Warning! on_bb_switch not present')
+        print('Warning! on_bb_charge not present')
 
     # Twiss and get closed-orbit
     if not skip_mad_use:
@@ -339,7 +339,7 @@ def get_optics_and_orbit_at_start_ring(mad, seq_name, with_bb_forces=False,
     twiss_table = mad.twiss()
 
     if initial_bb_state is not None:
-        mad.globals.on_bb_switch = initial_bb_state
+        mad.globals.on_bb_charge = initial_bb_state
 
     beta0 = mad.sequence[seq_name].beam.beta
     gamma0 = mad.sequence[seq_name].beam.gamma
@@ -372,7 +372,7 @@ def get_optics_and_orbit_at_start_ring(mad, seq_name, with_bb_forces=False,
 
 def generate_pysixtrack_line_with_bb(mad, seq_name, bb_df,
         closed_orbit_method='from_mad', pickle_lines_in_folder=None,
-        skip_mad_use=False):
+        skip_mad_use=False, apply_madx_errors=True):
 
     opt_and_CO = get_optics_and_orbit_at_start_ring(mad, seq_name,
             with_bb_forces=False, skip_mad_use=True)
@@ -380,7 +380,7 @@ def generate_pysixtrack_line_with_bb(mad, seq_name, bb_df,
     # Build pysixtrack model
     import pysixtrack
     pysxt_line = pysixtrack.Line.from_madx_sequence(
-        mad.sequence[seq_name])
+        mad.sequence[seq_name], apply_madx_errors=apply_madx_errors)
 
     if bb_df is not None:
         bb.setup_beam_beam_in_line(pysxt_line, bb_df, bb_coupling=False)
